@@ -5,7 +5,7 @@ using OSMLSGlobalLibrary.Map;
 using OSMLSGlobalLibrary.Modules;
 using System.Collections.Generic;
 using System.Linq;
-
+using NetTopologySuite.Operation.Overlay;
 
 namespace TestModule {
 
@@ -27,6 +27,7 @@ namespace TestModule {
         List<(int, int)> airportCoordinates = new List<(int, int)>();
         List<Coordinate[]> storms = new List<Coordinate[]>();
         const int maximumPlanes = 1000;
+        const int countAirport = 40;
 
         protected override void Initialize() {
             var rand = new Random();
@@ -40,7 +41,6 @@ namespace TestModule {
 
             #region создание кастомного объекта и добавление на карту, модификация полигона заменой точки
 
-            var countAirport = 30;
             for (var i = 0; i < countAirport; i++) {
                 var lat = rand.Next(-70, 70);
                 var lan = rand.Next(-70, 70);
@@ -50,7 +50,7 @@ namespace TestModule {
                 airportCoordinates.Add((lat, lan));
             }
 
-            for (int i=0; i< 10; i++) {
+            for(int i=0; i< 50; i++) {
                 AddPlane();
             }
 
@@ -70,7 +70,7 @@ namespace TestModule {
             var airportCoordinate = MathExtensions.LatLonToSpherMerc(sourceAirport.Item1, sourceAirport.Item2);
             var destAirportCoordinate = MathExtensions.LatLonToSpherMerc(destAirport.Item1, destAirport.Item2);
 
-            var airplane = new Airplane(airportCoordinate, 1000);
+            var airplane = new Airplane(airportCoordinate, 10000);
 
             airplanes.Add((airplane, destAirportCoordinate));
             MapObjects.Add(airplane);
@@ -82,7 +82,7 @@ namespace TestModule {
         /// <param name="elapsedMilliseconds">TimeNow.ElapsedMilliseconds</param>
         public override void Update(long elapsedMilliseconds) {
             // Двигаем самолет.
-            if (airplanes.Count < maximumPlanes) {
+            if(airplanes.Count < maximumPlanes) {
                 AddPlane();
             }
 
@@ -161,7 +161,7 @@ namespace TestModule {
         /// </summary>
         internal void FlyToAirport(Coordinate mymap, List<Coordinate[]> storms) {
             double eps = 2 * Speed;
-
+            /*
             foreach (var storm in storms) {
                 foreach (var coordinates in storm) {
                     var absX = Math.Abs(coordinate.X - coordinates.X);
@@ -177,8 +177,8 @@ namespace TestModule {
                         coordinate.Y -= 5 * eps;
                     }
                 }
-            }
- 
+            }*/
+            
 
             if (coordinate.X < mymap.X) {
                 X += Speed;
@@ -193,7 +193,7 @@ namespace TestModule {
                 Y -= Speed;
             }
             if (coordinate.Y == mymap.Y && coordinate.X == mymap.X) {
-                //Console.WriteLine("мы на месте");
+                
             }
 
         }
