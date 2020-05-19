@@ -5,6 +5,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Properties\Resources.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Properties\Resources.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Properties\gadb_country_declatlon.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.0.0" />
     <PackageReference Include="NetTopologySuite.Features" Version="2.1.0" />
   </ItemGroup>
@@ -16,6 +28,10 @@
     <Reference Include="OSMLSGlobalLibrary">
       <HintPath>..\..\osmlifesimulation\OSMLS\bin\Debug\netcoreapp2.1\OSMLSGlobalLibrary.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

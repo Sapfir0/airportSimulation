@@ -6,6 +6,9 @@ using OSMLSGlobalLibrary.Modules;
 using System.Collections.Generic;
 using System.Linq;
 using NetTopologySuite.Operation.Overlay;
+using System.Collections;
+using System.IO;
+using System.Globalization;
 
 namespace TestModule {
 
@@ -28,6 +31,12 @@ namespace TestModule {
         List<Coordinate[]> storms = new List<Coordinate[]>();
         const int maximumPlanes = 1000;
         const int countAirport = 40;
+
+        class RealAirports {
+            string country;
+            double latitude;
+            double longitude;
+        }
 
         protected override void Initialize() {
             var rand = new Random();
@@ -161,23 +170,7 @@ namespace TestModule {
         /// </summary>
         internal void FlyToAirport(Coordinate mymap, List<Coordinate[]> storms) {
             double eps = 2 * Speed;
-            /*
-            foreach (var storm in storms) {
-                foreach (var coordinates in storm) {
-                    var absX = Math.Abs(coordinate.X - coordinates.X);
-                    var absY = Math.Abs(coordinate.Y - coordinates.Y);
 
-                    while (absX < eps) {
-                        absX = Math.Abs(coordinate.X - coordinates.X);
-                        coordinate.X -= 5 * eps;
-                    }
-
-                    while (absY < eps) {
-                        absY = Math.Abs(coordinate.Y - coordinates.Y);
-                        coordinate.Y -= 5 * eps;
-                    }
-                }
-            }*/
             
 
             if (coordinate.X < mymap.X) {
