@@ -20,21 +20,10 @@ namespace TestModule {
 
         List<(double lat, double lon)> airportLatLon = new List<(double lat, double lon)>();
 
-
-        // Тестовая точка.
-        Point point;
-
-        // Тестовая линия.
-        LineString line;
-
-        // Тестовый полигон.
-        Polygon polygon;
-
         List<(Airplane, Coordinate)> airplanes = new List<(Airplane, Coordinate)>();
 
         List<Coordinate> storms = new List<Coordinate>();
-        const int maximumPlanes = 1000;
-        const int countAirport = 40;
+        const int maximumPlanes = 1000; // в реальной жизни около 11-12тыс
 
         class RealAirports {
             string country;
@@ -46,10 +35,6 @@ namespace TestModule {
             var rand = new Random();
 
             const string textFile = "airports.dat";
-
-            // Read file using StreamReader. Reads file line by line   
-            var curDir = Directory.GetCurrentDirectory();
-            Console.WriteLine(curDir);
 
             if (File.Exists(textFile)) {
                 var lines = File.ReadAllLines(textFile);
@@ -72,21 +57,16 @@ namespace TestModule {
             }
 
 
-            for (int i = 0; i < 10; i++) {
-                AddphpStorm();
+            for (int i = 0; i < 20; i++) {
+                AddStorm();
 
             }
 
-            Console.WriteLine("We are planing");
             #region создание кастомного объекта и добавление на карту, модификация полигона заменой точки
-
 
             for (int i = 0; i < 50; i++) {
                 AddPlane();
             }
-
-            Console.WriteLine(airplanes.Count);
-            Console.WriteLine(airportLatLon.Count);
 
 
             #endregion
@@ -115,26 +95,39 @@ namespace TestModule {
         /// </summary>
         /// <param name="elapsedMilliseconds">TimeNow.ElapsedMilliseconds</param>
         public override void Update(long elapsedMilliseconds) {
-            // Двигаем самолет.
+
             if (airplanes.Count < maximumPlanes) {
                 AddPlane();
             }
 
+            var arrivedPlanes = airplanes.Where(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed));
+
+            foreach (var plane in arrivedPlanes) {
+                MapObjects.Remove(plane.Item1);
+                Console.WriteLine("From card was removed " + plane.Item1.X + " " + plane.Item1.Y);
+            }
+
+           // не могу удалитб по-другому
+            airplanes.RemoveAll(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)); // самолет прибывает на место назначения
+
+
+            Console.WriteLine(airplanes.Count);
+
             foreach (var airplane in airplanes) {
                 var realPlane = airplane.Item1;
                 var realDest = airplane.Item2;
-
                 realPlane.FlyToAirport(realDest, storms);
             }
+
+            foreach(var storm in storms) {
+
+            }
         }
-        public void AddphpStorm() {
+
+        public void AddStorm() {
             var rand = new Random();
-
-            var lat = rand.Next(-70, 70);
-            var lan = rand.Next(-70, 70);
-
-            var coord = MathExtensions.LatLonToSpherMerc(lat, lan);
-            // Создание стандартного полигона по ранее созданным координатам.
+ 
+            var coord = MathExtensions.LatLonToSpherMerc(rand.Next(-70, 70), rand.Next(-70, 70));
             MapObjects.Add(new Storm(coord, 10));
 
             storms.Add(coord);
@@ -199,6 +192,7 @@ namespace TestModule {
             e.Graphics.DrawBezier(blackPen, start, control1, control2, end);
             */
 
+
             if (coordinate.X < mymap.X) {
                 X += Speed;
             }
@@ -211,9 +205,8 @@ namespace TestModule {
             if (coordinate.Y > mymap.Y) {
                 Y -= Speed;
             }
-            if (coordinate.Y == mymap.Y && coordinate.X == mymap.X) {
 
-            }
+            
 
         }
     }
