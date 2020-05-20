@@ -32,7 +32,7 @@ namespace TestModule {
 
         List<(Airplane, Coordinate)> airplanes = new List<(Airplane, Coordinate)>();
 
-        List<Coordinate[]> storms = new List<Coordinate[]>();
+        List<Coordinate> storms = new List<Coordinate>();
         const int maximumPlanes = 1000;
         const int countAirport = 40;
 
@@ -51,17 +51,11 @@ namespace TestModule {
             var curDir = Directory.GetCurrentDirectory();
             Console.WriteLine(curDir);
 
-            
-            //using(var streamReader = new StreamReader("airports.dat")) {
-              //  string lines = streamReader.ReadToEnd();
-                //Console.WriteLine(lines);
-            //}
-            
             if (File.Exists(textFile)) {
                 var lines = File.ReadAllLines(textFile);
                 foreach (var line in lines) {
                     var row = line.Split(",");
-                    if (Double.TryParse(row[6], out double result) && Double.TryParse(row[7], out double result2)) {
+                    if (double.TryParse(row[6], out double result) && Double.TryParse(row[7], out double result2)) {
                         airportLatLon.Add((Convert.ToDouble(row[6]), Convert.ToDouble(row[7])));
                     } else {
                         Console.WriteLine(row[6] + " " + row[7]);
@@ -70,6 +64,7 @@ namespace TestModule {
             } else {
                  throw new Exception("Data file not found");
              }
+
 
             for (int i = 0; i < airportLatLon.Count; i++) {
                 var airportCoordinate = MathExtensions.LatLonToSpherMerc(airportLatLon[i].lat, airportLatLon[i].lon);
@@ -114,6 +109,7 @@ namespace TestModule {
             MapObjects.Add(airplane);
         }
 
+
         /// <summary>
         /// Вызывается постоянно, здесь можно реализовывать логику перемещений и всего остального, требующего времени.
         /// </summary>
@@ -128,8 +124,6 @@ namespace TestModule {
                 var realPlane = airplane.Item1;
                 var realDest = airplane.Item2;
 
-                var foo = $"{realPlane.X} {realPlane.Y} летим к {realDest.X} {realDest.Y}";
-                //Console.WriteLine(foo);
                 realPlane.FlyToAirport(realDest, storms);
             }
         }
@@ -138,20 +132,12 @@ namespace TestModule {
 
             var lat = rand.Next(-70, 70);
             var lan = rand.Next(-70, 70);
-            var airportCoordinate = MathExtensions.LatLonToSpherMerc(lat, lan);
 
-
-            var polygonCoordinates = new Coordinate[] {
-                    airportCoordinate,
-                    MathExtensions.LatLonToSpherMerc(lat+5, lan+1),
-                    MathExtensions.LatLonToSpherMerc(lat+3, lan-2),
-                    MathExtensions.LatLonToSpherMerc(lat+2, lan-3),
-                    airportCoordinate,
-                };
+            var coord = MathExtensions.LatLonToSpherMerc(lat, lan);
             // Создание стандартного полигона по ранее созданным координатам.
-            polygon = new Polygon(new LinearRing(polygonCoordinates));
-            MapObjects.Add(polygon);
-            storms.Add(polygonCoordinates);
+            MapObjects.Add(new Storm(coord, 10));
+
+            storms.Add(coord);
         }
     }
 
@@ -197,10 +183,21 @@ namespace TestModule {
         /// <summary>
         /// Двигает самолет вверх-вправо.
         /// </summary>
-        internal void FlyToAirport(Coordinate mymap, List<Coordinate[]> storms) {
+        internal void FlyToAirport(Coordinate mymap, List<Coordinate> storms) {
             double eps = 2 * Speed;
 
+            // Create pen.
+           /* Pen blackPen = new Pen(Color.Black, 3);
 
+            // Create points for curve.
+            PointF start = new PointF(100.0F, 100.0F);
+            PointF control1 = new PointF(200.0F, 10.0F);
+            PointF control2 = new PointF(350.0F, 50.0F);
+            PointF end = new PointF(500.0F, 100.0F);
+
+            // Draw arc to screen.
+            e.Graphics.DrawBezier(blackPen, start, control1, control2, end);
+            */
 
             if (coordinate.X < mymap.X) {
                 X += Speed;
@@ -221,9 +218,39 @@ namespace TestModule {
         }
     }
 
+    /// <summary>
+    /// Тучка
+    /// </summary>
+    [CustomStyle(
+        @"new ol.style.Style({
+            image: new ol.style.Circle({
+                opacity: 1.0,
+                scale: 1.0,
+                radius: 20,
+                fill: new ol.style.Fill({
+                    color: 'rgba(0, 125, 125, 0.4)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: 'rgba(0, 0, 0, 0.4)',
+                    width: 1
+                }),
+            })
+        });
+        ")]
+    class Storm : Point {
+        public Coordinate coordinate;
+        public double Speed { get; }
 
+
+        public Storm(Coordinate coordinate, double speed) : base(coordinate) {
+            this.coordinate = coordinate;
+            Speed = speed;
+
+        }
+    }
 
     /// <summary>
+    /// Аэропорт
     /// </summary>
     [CustomStyle(
         @"new ol.style.Style({
@@ -251,7 +278,6 @@ namespace TestModule {
             Speed = speed;
 
         }
-
     }
 
     #endregion
