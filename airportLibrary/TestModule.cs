@@ -9,12 +9,17 @@ using NetTopologySuite.Operation.Overlay;
 using System.Collections;
 using System.IO;
 using System.Globalization;
+using System.Collections.Specialized;
+using System.Reflection;
 
 namespace TestModule {
 
 
     public class airport : OSMLSModule {
         public (int leftX, int rightX, int downY, int upY) map;
+
+        List<(double lat, double lon)> airportLatLon = new List<(double lat, double lon)>();
+
 
         // Тестовая точка.
         Point point;
@@ -25,9 +30,8 @@ namespace TestModule {
         // Тестовый полигон.
         Polygon polygon;
 
-        List<(Airplane, Coordinate)> airplanes = new List<(Airplane, Coordinate)>(); 
+        List<(Airplane, Coordinate)> airplanes = new List<(Airplane, Coordinate)>();
 
-        List<(int, int)> airportCoordinates = new List<(int, int)>();
         List<Coordinate[]> storms = new List<Coordinate[]>();
         const int maximumPlanes = 1000;
         const int countAirport = 40;
@@ -41,45 +45,70 @@ namespace TestModule {
         protected override void Initialize() {
             var rand = new Random();
 
+            const string textFile = "airports.dat";
 
-            for (int i=0; i<10; i++) {
-                AddphpStorm();
- 
+            // Read file using StreamReader. Reads file line by line   
+            var curDir = Directory.GetCurrentDirectory();
+            Console.WriteLine(curDir);
+
+            
+            //using(var streamReader = new StreamReader("airports.dat")) {
+              //  string lines = streamReader.ReadToEnd();
+                //Console.WriteLine(lines);
+            //}
+            
+            if (File.Exists(textFile)) {
+                var lines = File.ReadAllLines(textFile);
+                foreach (var line in lines) {
+                    var row = line.Split(",");
+                    if (Double.TryParse(row[6], out double result) && Double.TryParse(row[7], out double result2)) {
+                        airportLatLon.Add((Convert.ToDouble(row[6]), Convert.ToDouble(row[7])));
+                    } else {
+                        Console.WriteLine(row[6] + " " + row[7]);
+                    }
+                }
+            } else {
+                 throw new Exception("Data file not found");
+             }
+
+            for (int i = 0; i < airportLatLon.Count; i++) {
+                var airportCoordinate = MathExtensions.LatLonToSpherMerc(airportLatLon[i].lat, airportLatLon[i].lon);
+                MapObjects.Add(new Airport(airportCoordinate, 0));
             }
 
 
+            for (int i = 0; i < 10; i++) {
+                AddphpStorm();
+
+            }
+
+            Console.WriteLine("We are planing");
             #region создание кастомного объекта и добавление на карту, модификация полигона заменой точки
 
-            for (var i = 0; i < countAirport; i++) {
-                var lat = rand.Next(-70, 70);
-                var lan = rand.Next(-70, 70);
 
-                var airportCoordinate = MathExtensions.LatLonToSpherMerc(lat, lan);
-                MapObjects.Add(new Airport(airportCoordinate, 0));
-                airportCoordinates.Add((lat, lan));
-            }
-
-            for(int i=0; i< 50; i++) {
+            for (int i = 0; i < 50; i++) {
                 AddPlane();
             }
 
             Console.WriteLine(airplanes.Count);
-            
+            Console.WriteLine(airportLatLon.Count);
+
+
             #endregion
         }
 
         public void AddPlane() {
-            var sourceAirport = airportCoordinates[new Random().Next(airportCoordinates.Count)];
-            var destAirport = airportCoordinates[new Random().Next(airportCoordinates.Count)];
+            var sourceAirport = airportLatLon[new Random().Next(airportLatLon.Count)];
+            var destAirport = airportLatLon[new Random().Next(airportLatLon.Count)];
 
             while (destAirport == sourceAirport) {
-                destAirport = airportCoordinates[new Random().Next(airportCoordinates.Count)];
+                destAirport = airportLatLon[new Random().Next(airportLatLon.Count)];
             }
 
             var airportCoordinate = MathExtensions.LatLonToSpherMerc(sourceAirport.Item1, sourceAirport.Item2);
             var destAirportCoordinate = MathExtensions.LatLonToSpherMerc(destAirport.Item1, destAirport.Item2);
 
-            var airplane = new Airplane(airportCoordinate, 10000);
+            var airplane = new Airplane(airportCoordinate, 1000);
 
             airplanes.Add((airplane, destAirportCoordinate));
             MapObjects.Add(airplane);
@@ -91,7 +120,7 @@ namespace TestModule {
         /// <param name="elapsedMilliseconds">TimeNow.ElapsedMilliseconds</param>
         public override void Update(long elapsedMilliseconds) {
             // Двигаем самолет.
-            if(airplanes.Count < maximumPlanes) {
+            if (airplanes.Count < maximumPlanes) {
                 AddPlane();
             }
 
@@ -136,7 +165,7 @@ namespace TestModule {
             image: new ol.style.Circle({
                 opacity: 1.0,
                 scale: 1.0,
-                radius: 3,
+                radius: 2,
                 fill: new ol.style.Fill({
                     color: 'rgba(255, 0, 255, 0.4)'
                 }),
@@ -171,7 +200,7 @@ namespace TestModule {
         internal void FlyToAirport(Coordinate mymap, List<Coordinate[]> storms) {
             double eps = 2 * Speed;
 
-            
+
 
             if (coordinate.X < mymap.X) {
                 X += Speed;
@@ -186,7 +215,7 @@ namespace TestModule {
                 Y -= Speed;
             }
             if (coordinate.Y == mymap.Y && coordinate.X == mymap.X) {
-                
+
             }
 
         }
@@ -195,14 +224,13 @@ namespace TestModule {
 
 
     /// <summary>
-    /// Самолет, умеющий летать вверх-вправо с заданной скоростью.
     /// </summary>
     [CustomStyle(
         @"new ol.style.Style({
             image: new ol.style.Circle({
                 opacity: 1.0,
                 scale: 1.0,
-                radius: 6,
+                radius: 3,
                 fill: new ol.style.Fill({
                     color: 'rgba(0, 0, 255, 0.4)'
                 }),
@@ -212,7 +240,7 @@ namespace TestModule {
                 }),
             })
         });
-        ")] 
+        ")]
     class Airport : Point {
         public Coordinate coordinate;
         public double Speed { get; }
