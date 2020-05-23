@@ -19,7 +19,7 @@ namespace TestModule {
         List<(Airplane, Coordinate)> airplanes = new List<(Airplane, Coordinate)>();
 
         List<Storm> storms = new List<Storm>();
-        const int maximumPlanes = 1000; // в реальной жизни около 11-12тыс
+        const int maximumPlanes = 500; // в реальной жизни около 11-12тыс
 
         class RealAirports {
             string country;
@@ -103,13 +103,14 @@ namespace TestModule {
 
             foreach (var plane in arrivedPlanes) {
                 MapObjects.Remove(plane.Item1);
+                airplanes.Remove(plane);
                 Console.WriteLine("[Самолет " + plane.Item1.X + " " + plane.Item1.Y + "]");
                 Console.WriteLine("Самолет прибыл в " + plane.Item1.X + " " + plane.Item1.Y);
                 Console.WriteLine("Началась высадка пассажиров");
                 Console.WriteLine("Пассажиры высажены");
             }
 
-            airplanes.RemoveAll(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)); // самолет прибывает на место назначения
+            //airplanes.RemoveAll(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)); // самолет прибывает на место назначения
 
             //было бы круто сделать мигание самолета перед исчезнованием
 
