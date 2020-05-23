@@ -5,12 +5,8 @@ using OSMLSGlobalLibrary.Map;
 using OSMLSGlobalLibrary.Modules;
 using System.Collections.Generic;
 using System.Linq;
-using NetTopologySuite.Operation.Overlay;
-using System.Collections;
 using System.IO;
-using System.Globalization;
-using System.Collections.Specialized;
-using System.Reflection;
+
 
 namespace TestModule {
 
@@ -22,7 +18,7 @@ namespace TestModule {
 
         List<(Airplane, Coordinate)> airplanes = new List<(Airplane, Coordinate)>();
 
-        List<Coordinate> storms = new List<Coordinate>();
+        List<Storm> storms = new List<Storm>();
         const int maximumPlanes = 1000; // в реальной жизни около 11-12тыс
 
         class RealAirports {
@@ -59,17 +55,13 @@ namespace TestModule {
 
             for (int i = 0; i < 20; i++) {
                 AddStorm();
-
             }
 
-            #region создание кастомного объекта и добавление на карту, модификация полигона заменой точки
 
             for (int i = 0; i < 50; i++) {
                 AddPlane();
             }
 
-
-            #endregion
         }
 
         public void AddPlane() {
@@ -98,20 +90,30 @@ namespace TestModule {
 
             if (airplanes.Count < maximumPlanes) {
                 AddPlane();
+                Console.WriteLine("[Самолет " + airplanes[airplanes.Count - 1].Item1.X + " " + airplanes[airplanes.Count - 1].Item1.Y + "]");
+                Console.WriteLine("Началась посадка");
+                Console.WriteLine("Пассажиры зарегистрированы");
+                Console.WriteLine("Пассажиры на местах");
+                Console.WriteLine("Самолет вылетел из " + airplanes[airplanes.Count-1].Item1.X + " " + airplanes[airplanes.Count - 1].Item1.Y);
             }
 
-            var arrivedPlanes = airplanes.Where(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed));
+            var arrivedPlanes = airplanes.Where(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)).ToList();
+            // не могу удалить по-другому
+
 
             foreach (var plane in arrivedPlanes) {
                 MapObjects.Remove(plane.Item1);
-                Console.WriteLine("From card was removed " + plane.Item1.X + " " + plane.Item1.Y);
+                Console.WriteLine("[Самолет " + plane.Item1.X + " " + plane.Item1.Y + "]");
+                Console.WriteLine("Самолет прибыл в " + plane.Item1.X + " " + plane.Item1.Y);
+                Console.WriteLine("Началась высадка пассажиров");
+                Console.WriteLine("Пассажиры высажены");
             }
 
-           // не могу удалитб по-другому
             airplanes.RemoveAll(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)); // самолет прибывает на место назначения
 
+            //было бы круто сделать мигание самолета перед исчезнованием
 
-            Console.WriteLine(airplanes.Count);
+            Console.WriteLine("Всего самолетов в небе: " + airplanes.Count);
 
             foreach (var airplane in airplanes) {
                 var realPlane = airplane.Item1;
@@ -119,8 +121,11 @@ namespace TestModule {
                 realPlane.FlyToAirport(realDest, storms);
             }
 
-            foreach(var storm in storms) {
+            foreach (var storm in storms) {
+                storm.X -= storm.Speed;
+                foreach (var airplane in airplanes) {
 
+                }
             }
         }
 
@@ -128,9 +133,10 @@ namespace TestModule {
             var rand = new Random();
  
             var coord = MathExtensions.LatLonToSpherMerc(rand.Next(-70, 70), rand.Next(-70, 70));
-            MapObjects.Add(new Storm(coord, 10));
+            var storm = new Storm(coord, 10);
+            MapObjects.Add(storm);
 
-            storms.Add(coord);
+            storms.Add(storm);
         }
     }
 
@@ -174,23 +180,10 @@ namespace TestModule {
         }
 
         /// <summary>
-        /// Двигает самолет вверх-вправо.
+        /// Двигает самолето.
         /// </summary>
-        internal void FlyToAirport(Coordinate mymap, List<Coordinate> storms) {
+        internal void FlyToAirport(Coordinate mymap, List<Storm> storms) {
             double eps = 2 * Speed;
-
-            // Create pen.
-           /* Pen blackPen = new Pen(Color.Black, 3);
-
-            // Create points for curve.
-            PointF start = new PointF(100.0F, 100.0F);
-            PointF control1 = new PointF(200.0F, 10.0F);
-            PointF control2 = new PointF(350.0F, 50.0F);
-            PointF end = new PointF(500.0F, 100.0F);
-
-            // Draw arc to screen.
-            e.Graphics.DrawBezier(blackPen, start, control1, control2, end);
-            */
 
 
             if (coordinate.X < mymap.X) {
@@ -204,9 +197,7 @@ namespace TestModule {
             }
             if (coordinate.Y > mymap.Y) {
                 Y -= Speed;
-            }
-
-            
+            }            
 
         }
     }
