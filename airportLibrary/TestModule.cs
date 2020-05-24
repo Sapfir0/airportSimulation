@@ -98,8 +98,6 @@ namespace TestModule {
             }
 
             var arrivedPlanes = airplanes.Where(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)).ToList();
-            // не могу удалить по-другому
-
 
             foreach (var plane in arrivedPlanes) {
                 MapObjects.Remove(plane.Item1);
@@ -109,8 +107,6 @@ namespace TestModule {
                 Console.WriteLine("Началась высадка пассажиров");
                 Console.WriteLine("Пассажиры высажены");
             }
-
-            //airplanes.RemoveAll(plane => (Math.Abs(plane.Item1.X - plane.Item2.X) < plane.Item1.Speed || Math.Abs(plane.Item1.Y - plane.Item2.Y) < plane.Item1.Speed)); // самолет прибывает на место назначения
 
             //было бы круто сделать мигание самолета перед исчезнованием
 
